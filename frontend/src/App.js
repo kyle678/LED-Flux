@@ -69,22 +69,28 @@ export default function App() {
 
   const togglePlayPause = async () => {
     const newState = !isPlaying;
-    setIsPlaying(newState);
-    await fetch(`${API_BASE}/pause`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: "pause", data: { "value": newState ? "on" : "off" } })
-    });
+    try {
+      await fetch(`${API_BASE}/pause`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: "pause", data: { "value": newState ? "on" : "off" } })
+      });
+      setIsPlaying(newState);
+    } catch (error) { console.error("Error toggling play/pause:", error); }
   };
 
   const togglePower = async () => {
     const newState = !isOn;
-    setIsOn(newState);
-    await fetch(`${API_BASE}/power`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: "power", data: { value: newState ? "on" : "off" } })
-    });
+    try {
+      await fetch(`${API_BASE}/power`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: "power", data: { value: newState ? "on" : "off" } })
+      });
+      setIsOn(newState);
+      // The engine's set_power forces active to match power, so mirror it here
+      setIsPlaying(newState);
+    } catch (error) { console.error("Error toggling power:", error); }
   };
 
   const triggerPreset = (presetKey) => {

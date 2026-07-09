@@ -27,7 +27,11 @@ def handle_animation(controller, data):
 
 def handle_config(controller, data):
     controller.clear()
-    
+
+    # Playing a scene implies turning on and unpausing — the frontend
+    # already assumes this when it sets its power/play state
+    controller.set_power(True)
+
     controller.config = data
 
     print(data)
