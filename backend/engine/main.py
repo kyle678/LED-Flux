@@ -1,6 +1,7 @@
 import socket
 import select
 import json
+import traceback
 import configparser
 
 from engine.controller import Controller
@@ -32,33 +33,52 @@ def check_for_api_commands(sock):
     ready = select.select([sock], [], [], 0.01) # Wait max 10ms
     if ready[0]:
         data, addr = sock.recvfrom(8192)
-        command = json.loads(data.decode('utf-8'))
+        try:
+            command = json.loads(data.decode('utf-8'))
+        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+            print(f"Ignoring malformed packet from {addr}: {e}")
+            return None, None
+        if not isinstance(command, dict):
+            print(f"Ignoring non-object command from {addr}: {command!r}")
+            return None, None
         return command, addr
     return None, None
+
+def dispatch_command(sock, addr, controller, command):
+    action = command.get("action")
+
+    # Look up the handler function in the dictionary
+    handler = COMMAND_HANDLERS.get(action)
+
+    if not handler:
+        print(f"Received unknown action: {action}")
+        return
+
+    if action == "get_status":
+        current_state = handler(controller)
+        respond_to_socket(sock, addr, current_state)
+    else:
+        handler(controller, command.get("data", {}))
 
 def loop(sock, controller):
     while True:
         command, addr = check_for_api_commands(sock)
-        
+
         if command:
-            action = command.get("action")
+            try:
+                dispatch_command(sock, addr, controller, command)
+            except Exception:
+                print(f"Error handling command {command}:")
+                traceback.print_exc()
 
-            # Look up the handler function in the dictionary
-            handler = COMMAND_HANDLERS.get(action)
-
-            if action == "get_status":
-                current_state = handler(controller)
-                respond_to_socket(sock, addr, current_state)
-            else:
-                data = command.get("data", {})
-                
-                if handler:
-                    # Execute the function
-                    handler(controller, data)
-                else:
-                    print(f"Received unknown action: {action}")
-                
-        controller.update()
+        try:
+            controller.update()
+        except Exception:
+            # A broken animation would raise every frame; drop the
+            # animations so the engine stays responsive to new commands.
+            print("Error rendering frame, clearing animations:")
+            traceback.print_exc()
+            controller.animations = []
 
 def main():
 

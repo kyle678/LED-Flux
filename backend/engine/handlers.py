@@ -14,7 +14,10 @@ def handle_animation(controller, data):
     if not anim_class:
         print(f"Unknown animation requested: {anim_name}")
         return
-    
+
+    if 'color' in data:
+        data['colors'] = [data.pop('color')]
+
     controller.animations = []
     animation = anim_class(**data)
     controller.add_animation(animation)
@@ -76,6 +79,5 @@ COMMAND_HANDLERS = {
     "config": handle_config,
     "power": handle_power,
     "pause": handle_pause,
-    "config": handle_config,
     "get_status": handle_get_status
 }
