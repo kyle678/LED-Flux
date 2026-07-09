@@ -1,8 +1,18 @@
 export const API_BASE = 'http://192.168.1.101:5000/api';
 
 export const ANIMATION_PRESETS = {
-  rainbow: { name: "rainbow", num_pixels: 1500, loop_duration: 10, target_fps: 30 },
-  white: { name: "white", num_pixels: 1500, start_index: 0}
+  rainbow: {
+    name: "rotating",
+    num_pixels: 1500,
+    loop_duration: 10,
+    target_fps: 30,
+    // Spectrum that ends back at red so the rotating gradient loops seamlessly
+    colors: [
+      [255, 0, 0], [255, 255, 0], [0, 255, 0],
+      [0, 255, 255], [0, 0, 255], [255, 0, 255], [255, 0, 0]
+    ]
+  },
+  white: { name: "static", num_pixels: 1500, start_index: 0, color: [255, 255, 255] }
 };
 
 export const hexToRgb = (hex) => {
