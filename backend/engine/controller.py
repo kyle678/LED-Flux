@@ -36,17 +36,8 @@ class Controller:
         self.power = True if state else False
         self.set_active(self.power)
 
-    def __getitem__(self, index):
-        return self.pixels[index]
-    
     def __getitem__(self, key):
-        if isinstance(key, slice):
-            return self.pixels[key]
-        else:
-            return self.pixels[key]
-    
-    def __setitem__(self, index, value):
-        self.pixels[index] = value
+        return self.pixels[key]
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
@@ -96,6 +87,3 @@ class Controller:
 
     def add_animation(self, animation):
         self.animations.append(animation)
-
-    def add_config(self, config):
-        self.configs.append(config)

@@ -49,13 +49,14 @@ def handle_config(controller, data):
         controller.add_animation(anim_instance)
 
 def handle_get_status(controller):
+    # Note: pixel data is deliberately excluded. At 1500 pixels the JSON
+    # would approach the 32KB UDP read buffer in the API and risk truncation.
     current_state = {
         "active": controller.is_active(),
         "power": controller.is_power(),
         "brightness": controller.brightness,
         "num_pixels": controller.num_pixels,
-        "animations": [type(anim).__name__ for anim in controller.animations],
-        "pixels": controller[:]
+        "animations": [type(anim).__name__ for anim in controller.animations]
     }
     return current_state
 

@@ -38,7 +38,7 @@ export default function App() {
         if (data.status === 'success') {
           setBrightness(data.data.brightness * 100 || 100);
           setIsOn(data.data.power || false);
-          setIsPlaying(data.data.current_animation !== 'none'); 
+          setIsPlaying(data.data.active || false);
         }
       } catch (error) { console.error("Could not reach LED API:", error); }
     };
@@ -152,8 +152,7 @@ const deleteSavedConfig = async (name) => {
   };
 
   const fetchConfigFromDatabase = (name) => {
-    // FIX: Changed /config/ to /configs/ to match your other API endpoints
-    fetch(`${API_BASE}/config/${encodeURIComponent(name)}`)
+    fetch(`${API_BASE}/configs/${encodeURIComponent(name)}`)
       .then(async res => {
         const text = await res.text(); // Read the raw text first
         
