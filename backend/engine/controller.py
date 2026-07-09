@@ -78,9 +78,7 @@ class Controller:
             if self.update_animation(animation):
                 rendered = True
 
-        # Only push to the strip when a frame actually changed; show() costs
-        # ~30us of wire time per pixel, so re-pushing identical frames every
-        # loop pass starves command handling
+        # Only push to the strip when a frame actually changed
         if rendered:
             self.show()
 

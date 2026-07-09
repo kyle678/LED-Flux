@@ -5,10 +5,10 @@ export default function MainControls({ isOn, isPlaying, togglePower, togglePlayP
   return (
     <div>
       <button style={styles.button} onClick={togglePower}>
-        {isOn ? '🔌 Turn Off' : '🔌 Turn On'}
+        {isOn ? 'Turn Off' : 'Turn On'}
       </button>
       <button style={styles.button} onClick={togglePlayPause}>
-        {isPlaying ? '⏸ Pause' : '▶️ Play'}
+        {isPlaying ? 'Pause' : 'Play'}
       </button>
     </div>
   );

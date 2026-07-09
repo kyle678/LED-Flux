@@ -11,13 +11,13 @@ export default function SavedScenes({ savedConfigs, playConfig, loadConfigForEdi
         {savedConfigs.map((config, index) => (
           <div key={index} style={{ display: 'flex', margin: '5px', borderRadius: '8px', overflow: 'hidden' }}>
             <button style={styles.savedButtonPlay} onClick={() => playConfig(config)} title={`Play ${config.name}`}>
-              ▶️ {config.name}
+              Play {config.name}
             </button>
             <button style={styles.savedButtonEdit} onClick={() => loadConfigForEditing(config)} title="Edit Scene">
-              ✏️
+              Edit
             </button>
             <button style={styles.savedButtonDelete} onClick={() => deleteSavedConfig(config.name)} title="Delete Scene">
-              ✖
+              Delete
             </button>
           </div>
         ))}

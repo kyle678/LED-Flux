@@ -11,7 +11,7 @@ export default function ConfigBuilder({
   setEditingAnimIndex,
   playConfig,
   saveCurrentConfig,
-  reloadCurrentConfig // --- NEW: Prop to trigger a database fetch from the parent ---
+  reloadCurrentConfig
 }) {
   // Animation Parameters
   const [builderType, setBuilderType] = useState('static');
@@ -207,7 +207,6 @@ export default function ConfigBuilder({
     }
   };
 
-  // --- NEW: Revert to Saved Function ---
   const handleRevert = () => {
     if (!configName) return; // Shouldn't happen if button is conditionally rendered, but safe to check
     const proceed = window.confirm(`Are you sure you want to discard unsaved changes and reload "${configName}"?`);
@@ -369,7 +368,6 @@ export default function ConfigBuilder({
             </div>
           ))}
           
-          {/* --- NEW: Revert Button added to action row --- */}
           <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
             <button style={{...styles.actionButton, flex: 1, backgroundColor: '#198754', margin: 0}} onClick={() => playConfig({ name: "unsaved-test", animations: configList })}>
               ▶️ Test Current Scene
