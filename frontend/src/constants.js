@@ -1,6 +1,7 @@
 export const API_BASE = 'http://192.168.1.101:5000/api';
 
 export const ANIMATION_PRESETS = {
+
   rainbow: {
     name: "rotating",
     num_pixels: 1500,
@@ -21,5 +22,5 @@ export const hexToRgb = (hex) => {
 };
 
 export const rgbToHex = (r, g, b) => {
-  return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+  return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
 };

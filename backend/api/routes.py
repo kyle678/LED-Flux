@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import configparser
 
 from flask import Blueprint, request, jsonify, g
 
@@ -9,13 +10,17 @@ main_routes = Blueprint('main', __name__)
 
 database_routes = Blueprint('database', __name__)
 
-DATABASE = '/home/kyle/Documents/LED-Flux/backend/led_configs.db'
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+DATABASE = config.get('database', 'path', fallback='api/led_configs.db')
 
 def get_db():
     db = getattr(g, '_database', None)
+    print(DATABASE)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row # This lets us access columns by name (e.g., row['name'])
+        db.row_factory = sqlite3.Row
     return db
 
 @main_routes.route('/api/status', methods=['GET'])
@@ -94,6 +99,26 @@ def get_configs():
             
         return jsonify({"status": "success", "data": saved_configs}), 200
         
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- RETRIEVE A SINGLE CONFIG BY NAME ---
+@database_routes.route('/api/configs/<config_name>', methods=['GET'])
+def get_config(config_name):
+    db = get_db()
+    try:
+        cursor = db.execute('SELECT name, animations_json FROM configs WHERE name = ?', (config_name,))
+        row = cursor.fetchone()
+        
+        if row:
+            config_data = {
+                "name": row['name'],
+                "animations": json.loads(row['animations_json']) # Convert JSON string back to a Python list
+            }
+            return jsonify({"status": "success", "data": config_data}), 200
+        else:
+            return jsonify({"status": "error", "message": f"Config '{config_name}' not found."}), 404
+            
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

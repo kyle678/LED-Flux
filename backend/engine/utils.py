@@ -62,6 +62,29 @@ class Utils:
         return gradient_colors
 
     @staticmethod
+    def getAlternatingColors(length, colors, step):
+        if not colors:
+            return []
+        if len(colors) == 1:
+            return [tuple(colors[0])] * length
+
+        alternating_colors = []
+        num_colors = len(colors)
+
+        for i in range(length):
+            color_index = (i // step) % num_colors
+            alternating_colors.append(tuple(colors[color_index]))
+
+        return alternating_colors
+
+    @staticmethod
+    def generateColorArray(length, colors, gradient=True, wrap=False, step=1):
+        if gradient:
+            return Utils.getMultiGradient(length, colors, wrap)
+        else:
+            return Utils.getAlternatingColors(length, colors, step)
+
+    @staticmethod
     def rotate(pixels, n):
         n = n % len(pixels)
         pixels[:] = pixels[-n:] + pixels[:-n]

@@ -1,0 +1,1 @@
+database_path = '/home/kyle/Documents/LED-Flux/backend/api/led_configs.db'

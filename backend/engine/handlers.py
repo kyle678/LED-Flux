@@ -24,13 +24,20 @@ def handle_config(controller, data):
     
     controller.config = data
 
+    print(data)
+    
     for animation in data.get('animations', []):
-        anim_name = animation.get('name')
+        anim_name = animation.get('animation_type')
         anim_class = ANIMATION_CLASSES.get(anim_name)
+        print(f"Configuring animation: {anim_name}")
+        print(f"Animation parameters: {animation}")
         
         if not anim_class:
             print(f"Unknown animation in config: {anim_name}")
             continue
+
+        if 'color' in animation:
+            animation['colors'] = [animation.pop('color')]
         
         anim_instance = anim_class(**animation)
         controller.add_animation(anim_instance)

@@ -87,10 +87,10 @@ export default function App() {
     const presetData = ANIMATION_PRESETS[presetKey];
     if (!presetData) return;
     try {
-      await fetch(`${API_BASE}/animation`, { 
+      await fetch(`${API_BASE}/config`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: "animation", data: presetData })
+        body: JSON.stringify({ action: "config", data: presetData })
       });
       setIsOn(true); setIsPlaying(true);
     } catch (error) { console.error(`Error setting preset:`, error); }
@@ -113,11 +113,18 @@ export default function App() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
-  const deleteSavedConfig = async (name) => {
+const deleteSavedConfig = async (name) => {
     if (!window.confirm(`Are you sure you want to delete '${name}'?`)) return;
     try {
       const response = await fetch(`${API_BASE}/configs/${encodeURIComponent(name)}`, { method: 'DELETE' });
-      if ((await response.json()).status === 'success') fetchSavedConfigs(); 
+      
+      // Check if the network request was successful before trying to parse JSON
+      if (response.ok) {
+        fetchSavedConfigs(); 
+      } else {
+        const text = await response.text();
+        console.error("Failed to delete. Server said:", text);
+      }
     } catch (error) { console.error("Error deleting config:", error); }
   };
 
@@ -133,12 +140,41 @@ export default function App() {
         body: JSON.stringify({ name: configName, animations: configList })
       });
       
-      if ((await response.json()).status === 'success') {
+      if (response.ok) {
         fetchSavedConfigs();
         setConfigList([]);
         setConfigName('');
+      } else {
+        const text = await response.text();
+        console.error("Save failed. Server said:", text);
       }
     } catch (error) { console.error("Error saving config:", error); }
+  };
+
+  const fetchConfigFromDatabase = (name) => {
+    // FIX: Changed /config/ to /configs/ to match your other API endpoints
+    fetch(`${API_BASE}/config/${encodeURIComponent(name)}`)
+      .then(async res => {
+        const text = await res.text(); // Read the raw text first
+        
+        if (!res.ok) {
+          throw new Error(`Server error ${res.status}: ${text}`);
+        }
+        if (!text) {
+          throw new Error("Server returned an empty response.");
+        }
+        
+        return JSON.parse(text); // Safely parse it now that we know it's good
+      })
+      .then(data => {
+        // Adjust these variables depending on exactly how Flask formats the returned dictionary
+        setConfigList(data.animations || data.data.animations);
+        setConfigName(data.name || data.data.name);
+      })
+      .catch(err => {
+        console.error("Failed to fetch config:", err);
+        alert("Could not load the scene from the server. Check the console!");
+      });
   };
 
   return (
@@ -167,6 +203,7 @@ export default function App() {
         configList={configList} setConfigList={setConfigList}
         configName={configName} setConfigName={setConfigName}
         playConfig={playConfig} saveCurrentConfig={saveCurrentConfig}
+        reloadCurrentConfig={fetchConfigFromDatabase}
       />
     </div>
   );

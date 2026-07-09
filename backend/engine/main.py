@@ -31,7 +31,7 @@ def respond_to_socket(sock, addr, message):
 def check_for_api_commands(sock):
     ready = select.select([sock], [], [], 0.01) # Wait max 10ms
     if ready[0]:
-        data, addr = sock.recvfrom(1024)
+        data, addr = sock.recvfrom(8192)
         command = json.loads(data.decode('utf-8'))
         return command, addr
     return None, None

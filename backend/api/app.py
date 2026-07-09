@@ -5,13 +5,13 @@ import sqlite3
 
 from routes import main_routes, database_routes
 
-DATABASE = '/home/kyle/Documents/LED-Flux/backend/led_configs.db'
-
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 HOST = config.get('flask', 'host', fallback='0.0.0.0')
 PORT = config.get('flask', 'port', fallback=5000)
+
+DATABASE = config.get('database', 'path', fallback='api/led_configs.db')
 
 app = Flask(__name__)
 CORS(app)
