@@ -30,24 +30,29 @@ export default function App() {
     } catch (error) { console.error("Could not fetch saved configs:", error); }
   };
 
+  // The engine is the source of truth for power/play state: the API acks
+  // power/pause/config sends without knowing whether the engine applied
+  // them (fire-and-forget UDP), so after each command we read the state
+  // back rather than assuming the toggle landed. If the engine is down,
+  // /api/status returns an error and the UI keeps its last known state.
+  const syncStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/status`);
+      const data = await response.json();
+      if (data.status === 'success') {
+        // Explicit type check so brightness 0 isn't treated as "missing"
+        setBrightness(typeof data.data.brightness === 'number' ? Math.round(data.data.brightness * 100) : 100);
+        setIsOn(data.data.power || false);
+        setIsPlaying(data.data.active || false);
+      }
+    } catch (error) { console.error("Could not reach LED API:", error); }
+  };
+
   useEffect(() => {
     document.body.style.backgroundColor = '#000000';
     document.body.style.color = '#e0e0e0';
 
-    const fetchStatus = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/status`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          // Explicit type check so brightness 0 isn't treated as "missing"
-          setBrightness(typeof data.data.brightness === 'number' ? Math.round(data.data.brightness * 100) : 100);
-          setIsOn(data.data.power || false);
-          setIsPlaying(data.data.active || false);
-        }
-      } catch (error) { console.error("Could not reach LED API:", error); }
-    };
-
-    fetchStatus();
+    syncStatus();
     fetchSavedConfigs();
   }, []);
 
@@ -68,28 +73,25 @@ export default function App() {
   };
 
   const togglePlayPause = async () => {
-    const newState = !isPlaying;
     try {
       await fetch(`${API_BASE}/pause`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: "pause", data: { "value": newState ? "on" : "off" } })
+        body: JSON.stringify({ action: "pause", data: { "value": !isPlaying ? "on" : "off" } })
       });
-      setIsPlaying(newState);
+      // Unpausing also powers the strip on engine-side; the sync picks that up
+      await syncStatus();
     } catch (error) { console.error("Error toggling play/pause:", error); }
   };
 
   const togglePower = async () => {
-    const newState = !isOn;
     try {
       await fetch(`${API_BASE}/power`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: "power", data: { value: newState ? "on" : "off" } })
+        body: JSON.stringify({ action: "power", data: { value: !isOn ? "on" : "off" } })
       });
-      setIsOn(newState);
-      // The engine's set_power forces active to match power, so mirror it here
-      setIsPlaying(newState);
+      await syncStatus();
     } catch (error) { console.error("Error toggling power:", error); }
   };
 
@@ -106,7 +108,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: "config", data: configData })
       });
-      setIsOn(true); setIsPlaying(true);
+      await syncStatus();
     } catch (error) { console.error(`Error sending config:`, error); }
   };
 

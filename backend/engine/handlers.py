@@ -88,7 +88,9 @@ def handle_pause(controller, data):
     if state == 'off':
         controller.set_active(False)
     else:
-        controller.set_active(True)
+        # Playing implies power on, matching handle_config; set_power(True)
+        # also re-renders animations blanked by a prior power off
+        controller.set_power(True)
 
 COMMAND_HANDLERS = {
     "brightness": handle_brightness,
