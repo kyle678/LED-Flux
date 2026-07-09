@@ -45,6 +45,9 @@ def init_db():
         ''')
         db.commit()
 
+# Run at import time (not just under __main__) so the table also gets
+# created when the app is served by a WSGI server like gunicorn
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(host=HOST, port=PORT)

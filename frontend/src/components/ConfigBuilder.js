@@ -56,14 +56,43 @@ export default function ConfigBuilder({
   };
 
   const addOrUpdateAnimation = () => {
+    const numPixels = parseInt(builderPixels, 10);
+    const startIndex = parseInt(builderStart, 10);
+    const animBrightness = parseFloat(builderBrightness);
+    const loopDuration = parseFloat(builderLoopDuration);
+    const targetFps = parseInt(builderTargetFps, 10);
+
+    // The engine drops animations with invalid numbers without telling the
+    // user, so catch bad input here with a clear message instead
+    if (Number.isNaN(numPixels) || numPixels <= 0) {
+      alert("Pixels must be a whole number greater than 0.");
+      return;
+    }
+    if (Number.isNaN(startIndex)) {
+      alert("Start Index must be a whole number.");
+      return;
+    }
+    if (Number.isNaN(animBrightness) || animBrightness < 0 || animBrightness > 1) {
+      alert("Brightness must be a number between 0.0 and 1.0.");
+      return;
+    }
+    if (Number.isNaN(loopDuration) || loopDuration <= 0) {
+      alert("Loop Duration must be a number greater than 0.");
+      return;
+    }
+    if (Number.isNaN(targetFps) || targetFps <= 0) {
+      alert("Target FPS must be a whole number greater than 0.");
+      return;
+    }
+
     const newAnim = {
       animation_type: builderType,
       name: builderAnimName,
-      num_pixels: parseInt(builderPixels, 10),
-      start_index: parseInt(builderStart, 10),
-      brightness: parseFloat(builderBrightness),
-      loop_duration: parseFloat(builderLoopDuration),
-      target_fps: parseInt(builderTargetFps, 10),
+      num_pixels: numPixels,
+      start_index: startIndex,
+      brightness: animBrightness,
+      loop_duration: loopDuration,
+      target_fps: targetFps,
       hide: false
     };
     

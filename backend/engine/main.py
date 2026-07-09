@@ -30,7 +30,9 @@ def respond_to_socket(sock, addr, message):
 def check_for_api_commands(sock):
     ready = select.select([sock], [], [], 0.01) # Wait max 10ms
     if ready[0]:
-        data, addr = sock.recvfrom(8192)
+        # Max UDP datagram size; a smaller buffer silently truncates large
+        # scene configs on Linux, making them fail JSON parsing
+        data, addr = sock.recvfrom(65535)
         try:
             command = json.loads(data.decode('utf-8'))
         except (UnicodeDecodeError, json.JSONDecodeError) as e:

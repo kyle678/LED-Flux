@@ -36,7 +36,8 @@ export default function App() {
         const response = await fetch(`${API_BASE}/status`);
         const data = await response.json();
         if (data.status === 'success') {
-          setBrightness(data.data.brightness * 100 || 100);
+          // Explicit type check so brightness 0 isn't treated as "missing"
+          setBrightness(typeof data.data.brightness === 'number' ? Math.round(data.data.brightness * 100) : 100);
           setIsOn(data.data.power || false);
           setIsPlaying(data.data.active || false);
         }

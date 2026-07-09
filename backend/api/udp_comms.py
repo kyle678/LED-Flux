@@ -36,8 +36,9 @@ class EngineUDPSender:
         req_sock.sendto(json.dumps(request_payload).encode('utf-8'), (self.udp_ip, self.udp_port))
         
         try:
-            # Wait and listen for the engine to reply
-            data, _ = req_sock.recvfrom(32768)
+            # Wait and listen for the engine to reply (buffer = max UDP
+            # datagram size so a large reply can't be truncated)
+            data, _ = req_sock.recvfrom(65535)
             engine_state = json.loads(data.decode('utf-8'))
             
             return jsonify({"status": "success", "data": engine_state}), 200
