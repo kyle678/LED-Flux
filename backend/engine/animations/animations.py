@@ -37,8 +37,16 @@ class BaseAnimation(ABC):
         self.base_pixels = self.pixels.copy()
         self.start_time = time.monotonic()
         self.blank = [Colors.BLACK for _ in range(num_pixels)]
+        self.rendered_hidden = False
 
     def ready_to_update(self):
+        if self.hide:
+            # A hidden animation's blank segment never changes; render it
+            # once instead of pushing black frames at target_fps forever
+            if self.rendered_hidden:
+                return False
+            self.rendered_hidden = True
+            return True
         now = time.monotonic()
         if now - self.last_update >= self.update_interval:
             self.last_update = now
@@ -49,6 +57,7 @@ class BaseAnimation(ABC):
         """Force a render on the next update pass (e.g. after power-on
         blanked the strip buffer)."""
         self.last_update = 0
+        self.rendered_hidden = False
     
     def render_frame(self):
         if self.hide:
@@ -117,16 +126,31 @@ class RotatingAnimation(BaseAnimation):
         super().__init__(animation_type, **kwargs)
 
         self.wrap = wrap
+        self.last_rotation = None
 
         self.setup()
 
     def setup(self):
+        if not self.colors:
+            self.colors = [self.color]  # BaseAnimation's white fallback
         if self.wrap:
             self.colors.append(self.colors[0])
         new_pixels = Utils.getMultiGradient(self.num_pixels, self.colors)
         self.pixels = new_pixels
         self.base_pixels = new_pixels.copy()
 
+    def ready_to_update(self):
+        if not super().ready_to_update():
+            return False
+        # With a slow loop and a high fps the rotation index often hasn't
+        # advanced between ticks; skip pushing the identical frame
+        return self.hide or self.get_cycle_index() != self.last_rotation
+
+    def request_render(self):
+        super().request_render()
+        self.last_rotation = None
+
     def update(self):
         rotate_by = self.get_cycle_index()
+        self.last_rotation = rotate_by
         self.pixels = Utils.rotate_copy(self.base_pixels, rotate_by)

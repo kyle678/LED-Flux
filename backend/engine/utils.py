@@ -86,10 +86,14 @@ class Utils:
 
     @staticmethod
     def rotate(pixels, n):
+        if not pixels:
+            return
         n = n % len(pixels)
         pixels[:] = pixels[-n:] + pixels[:-n]
 
     @staticmethod
     def rotate_copy(pixels, n):
+        if not pixels:
+            return pixels
         n = n % len(pixels)
         return pixels[-n:] + pixels[:-n]

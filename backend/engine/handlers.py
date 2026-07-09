@@ -52,8 +52,14 @@ def handle_config(controller, data):
 
         if 'color' in animation:
             animation['colors'] = [animation.pop('color')]
-        
-        anim_instance = anim_class(**animation)
+
+        try:
+            anim_instance = anim_class(**animation)
+        except Exception as e:
+            # One bad animation (e.g. a hand-edited saved scene with an
+            # unknown field) shouldn't take down the rest of the scene
+            print(f"Skipping animation '{animation.get('name')}': {e}")
+            continue
         controller.add_animation(anim_instance)
 
 def handle_get_status(controller):
