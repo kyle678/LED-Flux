@@ -35,6 +35,11 @@ class Controller:
     def set_power(self, state):
         self.power = True if state else False
         self.set_active(self.power)
+        if self.power:
+            # The power-off handler blanks the strip buffer, so animations
+            # that render once (statics) must draw themselves again
+            for animation in self.animations:
+                animation.request_render()
 
     def __getitem__(self, key):
         return self.pixels[key]
@@ -68,22 +73,30 @@ class Controller:
         if not self.active or not self.power:
             return
 
+        rendered = False
         for animation in self.animations:
-            self.update_animation(animation)
+            if self.update_animation(animation):
+                rendered = True
 
-        self.show()
+        # Only push to the strip when a frame actually changed; show() costs
+        # ~30us of wire time per pixel, so re-pushing identical frames every
+        # loop pass starves command handling
+        if rendered:
+            self.show()
 
     def update_animation(self, animation):
-        if animation.ready_to_update():
-            pixels = animation.render_frame()
-            start = animation.get_start_index()
-            # Clamp to the physical strip so an animation whose start_index
-            # plus length overruns (or starts before) the strip is cropped
-            # instead of raising IndexError
-            first = max(0, -start)
-            last = min(len(pixels), self.num_pixels - start)
-            for i in range(first, last):
-                self[i + start] = pixels[i]
+        if not animation.ready_to_update():
+            return False
+        pixels = animation.render_frame()
+        start = animation.get_start_index()
+        # Clamp to the physical strip so an animation whose start_index
+        # plus length overruns (or starts before) the strip is cropped
+        # instead of raising IndexError
+        first = max(0, -start)
+        last = min(len(pixels), self.num_pixels - start)
+        for i in range(first, last):
+            self[i + start] = pixels[i]
+        return True
 
     def add_animation(self, animation):
         self.animations.append(animation)

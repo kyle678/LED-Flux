@@ -44,6 +44,11 @@ class BaseAnimation(ABC):
             self.last_update = now
             return True
         return False
+
+    def request_render(self):
+        """Force a render on the next update pass (e.g. after power-on
+        blanked the strip buffer)."""
+        self.last_update = 0
     
     def render_frame(self):
         if self.hide:
@@ -82,10 +87,22 @@ class BaseAnimation(ABC):
 class StaticAnimation(BaseAnimation):
     def __init__(self, animation_type='static', **kwargs):
         super().__init__(animation_type, **kwargs)
+        self.rendered = False
         self.setup()
 
     def setup(self):
         self.pixels = [self.color for _ in range(self.num_pixels)]
+
+    def ready_to_update(self):
+        # A static frame never changes: render exactly once instead of
+        # re-pushing the same pixels at target_fps forever
+        if self.rendered:
+            return False
+        self.rendered = True
+        return True
+
+    def request_render(self):
+        self.rendered = False
 
     def update(self):
         pass
