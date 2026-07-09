@@ -83,17 +83,10 @@ export default function App() {
     });
   };
 
-  const triggerPreset = async (presetKey) => {
+  const triggerPreset = (presetKey) => {
     const presetData = ANIMATION_PRESETS[presetKey];
     if (!presetData) return;
-    try {
-      await fetch(`${API_BASE}/config`, { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: "config", data: presetData })
-      });
-      setIsOn(true); setIsPlaying(true);
-    } catch (error) { console.error(`Error setting preset:`, error); }
+    playConfig(presetData);
   };
 
   const playConfig = async (configData) => {
