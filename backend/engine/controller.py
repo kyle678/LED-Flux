@@ -85,8 +85,14 @@ class Controller:
     def update_animation(self, animation):
         if animation.ready_to_update():
             pixels = animation.render_frame()
-            for i in range(min(self.num_pixels, len(pixels))):
-                self[i + animation.get_start_index()] = pixels[i]
+            start = animation.get_start_index()
+            # Clamp to the physical strip so an animation whose start_index
+            # plus length overruns (or starts before) the strip is cropped
+            # instead of raising IndexError
+            first = max(0, -start)
+            last = min(len(pixels), self.num_pixels - start)
+            for i in range(first, last):
+                self[i + start] = pixels[i]
 
     def add_animation(self, animation):
         self.animations.append(animation)

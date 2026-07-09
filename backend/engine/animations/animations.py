@@ -13,7 +13,7 @@ class BaseAnimation(ABC):
                  start_index=0,
                  loop_duration=5,
                  target_fps=30,
-                 colors=[(255, 100, 0), (0, 255, 100), (100, 0, 255)],
+                 colors=((255, 100, 0), (0, 255, 100), (100, 0, 255)),
                  hide=False,
                  wrap=True
                  ):
@@ -22,7 +22,9 @@ class BaseAnimation(ABC):
         self.wrap = wrap
         self.name = name
         self.animation_type = animation_type
-        self.colors = colors
+        # Copy so later mutations (e.g. wrap appending the first color)
+        # can't alter the caller's list or the shared default
+        self.colors = list(colors)
         self.color = self.colors[0] if self.colors else (255, 255, 255)
         self.num_pixels = num_pixels
         self.start_index = start_index

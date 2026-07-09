@@ -1,7 +1,10 @@
 from engine.animations.animation_registry import ANIMATION_CLASSES
 
 def handle_brightness(controller, data):
-    value = data.get('value', 0) 
+    value = data.get('value')
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 1:
+        print(f"Ignoring invalid brightness value: {value!r}")
+        return
     controller.set_brightness(value)
 
 def handle_clear(controller, data):
