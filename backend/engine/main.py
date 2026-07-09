@@ -10,18 +10,16 @@ from engine.handlers import COMMAND_HANDLERS
 CONFIG_FILE = 'config.ini'
 
 def load_config(config_file):
-    try:
-        config = configparser.ConfigParser()
-        config.read(config_file)
-        return config
-    except FileNotFoundError:
-        return FileNotFoundError("Configuration file not found.")
+    config = configparser.ConfigParser()
+    # read() returns the list of files it could parse; missing files are
+    # skipped silently, so warn here and fall back to defaults
+    if not config.read(config_file):
+        print(f"Config file '{config_file}' not found, using defaults.")
+    return config
 
-def set_up_socket_server():
-    UDP_IP = "127.0.0.1"
-    UDP_PORT = 5005
+def set_up_socket_server(udp_ip, udp_port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT))
+    sock.bind((udp_ip, udp_port))
     sock.setblocking(0) # Make socket non-blocking
     return sock
 
@@ -88,7 +86,12 @@ def main():
     NUM_PIXELS = config.getint('pixels', 'num_pixels', fallback=10)
     BRIGHTNESS = config.getfloat('pixels', 'brightness', fallback=0.2)
 
-    sock = set_up_socket_server()
+    # Same section and fallbacks the API reads in udp_comms.py, so the two
+    # processes can't disagree when config.ini changes
+    UDP_IP = config.get('engine', 'udp_ip', fallback='127.0.0.1')
+    UDP_PORT = config.getint('engine', 'udp_port', fallback=5005)
+
+    sock = set_up_socket_server(UDP_IP, UDP_PORT)
 
     controller = Controller(num_pixels=NUM_PIXELS, pin=PIN_NUMBER, brightness=BRIGHTNESS)
 

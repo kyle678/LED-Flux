@@ -120,7 +120,7 @@ export default function ConfigBuilder({
 
   const toggleHide = (index) => {
     const updatedList = [...configList];
-    updatedList[index].hide = !updatedList[index].hide;
+    updatedList[index] = { ...updatedList[index], hide: !updatedList[index].hide };
     setConfigList(updatedList);
   };
 

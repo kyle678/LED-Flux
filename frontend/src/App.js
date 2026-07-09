@@ -102,7 +102,8 @@ export default function App() {
 
   const loadConfigForEditing = (config) => {
     setConfigName(config.name);
-    setConfigList([...config.animations]); 
+    // Copy each animation so builder edits can't mutate the savedConfigs state
+    setConfigList(config.animations.map((anim) => ({ ...anim })));
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
