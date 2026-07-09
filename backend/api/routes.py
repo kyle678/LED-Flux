@@ -1,27 +1,13 @@
-import sqlite3
 import json
-import configparser
 
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 
+from db import get_db
 from udp_comms import engine_sender
 
 main_routes = Blueprint('main', __name__)
 
 database_routes = Blueprint('database', __name__)
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-DATABASE = config.get('database', 'path', fallback='api/led_configs.db')
-
-def get_db():
-    db = getattr(g, '_database', None)
-    print(DATABASE)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-    return db
 
 @main_routes.route('/api/status', methods=['GET'])
 def status():

@@ -12,6 +12,8 @@ export default function App() {
   const [brightness, setBrightness] = useState(100);
   const [isOn, setIsOn] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  // Strip length as reported by the engine; null until the first status sync
+  const [numPixels, setNumPixels] = useState(null);
   
   const [configList, setConfigList] = useState([]);
   const [configName, setConfigName] = useState('');
@@ -44,6 +46,7 @@ export default function App() {
         setBrightness(typeof data.data.brightness === 'number' ? Math.round(data.data.brightness * 100) : 100);
         setIsOn(data.data.power || false);
         setIsPlaying(data.data.active || false);
+        if (typeof data.data.num_pixels === 'number') setNumPixels(data.data.num_pixels);
       }
     } catch (error) { console.error("Could not reach LED API:", error); }
   };
@@ -98,7 +101,13 @@ export default function App() {
   const triggerPreset = (presetKey) => {
     const presetData = ANIMATION_PRESETS[presetKey];
     if (!presetData) return;
-    playConfig(presetData);
+    // Presets hardcode a fallback length; prefer the strip size the engine
+    // reported so one preset works on any strip
+    const animations = presetData.animations.map((anim) => ({
+      ...anim,
+      num_pixels: numPixels || anim.num_pixels,
+    }));
+    playConfig({ ...presetData, animations });
   };
 
   const playConfig = async (configData) => {

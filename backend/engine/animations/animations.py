@@ -119,13 +119,11 @@ class StaticAnimation(BaseAnimation):
 class RotatingAnimation(BaseAnimation):
     def __init__(self,
                  animation_type='rotating',
-                 wrap=True,
                  **kwargs
                 ):
-        
+        # wrap is accepted via kwargs and handled by BaseAnimation
         super().__init__(animation_type, **kwargs)
 
-        self.wrap = wrap
         self.last_rotation = None
 
         self.setup()

@@ -11,17 +11,25 @@ def handle_clear(controller, data):
     controller.clear()
 
 def handle_animation(controller, data):
-    anim_name = data.get('name')
-    anim_class = ANIMATION_CLASSES.get(anim_name)
-    
+    # animation_type matches the config path; name is accepted as a fallback
+    # for older callers that used it to pick the class
+    anim_type = data.get('animation_type') or data.get('name')
+    anim_class = ANIMATION_CLASSES.get(anim_type)
+
     if not anim_class:
-        print(f"Unknown animation requested: {anim_name}")
+        print(f"Unknown animation requested: {anim_type}")
         return
 
     if 'color' in data:
         data['colors'] = [data.pop('color')]
 
-    animation = anim_class(**data)
+    # Construct before touching the strip so bad parameters don't leave it
+    # blanked with nothing playing
+    try:
+        animation = anim_class(**data)
+    except Exception as e:
+        print(f"Ignoring invalid animation '{anim_type}': {e}")
+        return
 
     # Blank the strip before swapping so a shorter animation doesn't leave
     # the previous frame's tail lit; power on to match handle_config
@@ -38,14 +46,13 @@ def handle_config(controller, data):
 
     controller.config = data
 
-    print(data)
-    
-    for animation in data.get('animations', []):
+    animations = data.get('animations', [])
+    print(f"Loading scene '{data.get('name')}' ({len(animations)} animations)")
+
+    for animation in animations:
         anim_name = animation.get('animation_type')
         anim_class = ANIMATION_CLASSES.get(anim_name)
-        print(f"Configuring animation: {anim_name}")
-        print(f"Animation parameters: {animation}")
-        
+
         if not anim_class:
             print(f"Unknown animation in config: {anim_name}")
             continue

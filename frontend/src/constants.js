@@ -1,7 +1,10 @@
-export const API_BASE = 'http://192.168.1.101:5000/api';
+// Override with REACT_APP_API_BASE in frontend/.env when the Pi's address changes
+export const API_BASE = process.env.REACT_APP_API_BASE || 'http://192.168.1.101:5000/api';
 
 // Presets use the same config shape as saved scenes:
 // { name, animations: [{ animation_type, ... }] }
+// num_pixels here is only a fallback — App overrides it with the strip
+// length the engine reports via /api/status
 export const ANIMATION_PRESETS = {
 
   rainbow: {
