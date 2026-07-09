@@ -21,8 +21,12 @@ def handle_animation(controller, data):
     if 'color' in data:
         data['colors'] = [data.pop('color')]
 
-    controller.animations = []
     animation = anim_class(**data)
+
+    # Blank the strip before swapping so a shorter animation doesn't leave
+    # the previous frame's tail lit; power on to match handle_config
+    controller.clear()
+    controller.set_power(True)
     controller.add_animation(animation)
 
 def handle_config(controller, data):
