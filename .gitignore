@@ -32,3 +32,6 @@ __pycache__/
 *.pyd
 
 *.code-workspace
+
+# Local Claude Code config (launch.json for dev-server previews)
+.claude/

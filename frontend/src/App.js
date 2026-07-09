@@ -15,6 +15,9 @@ export default function App() {
   
   const [configList, setConfigList] = useState([]);
   const [configName, setConfigName] = useState('');
+  // Lives here (not in ConfigBuilder) so every place that replaces configList
+  // can reset it — a stale index would make "Update Animation" hit the wrong slot
+  const [editingAnimIndex, setEditingAnimIndex] = useState(null);
   const [savedConfigs, setSavedConfigs] = useState([]);
   
   const debounceTimer = useRef(null);
@@ -105,6 +108,7 @@ export default function App() {
     setConfigName(config.name);
     // Copy each animation so builder edits can't mutate the savedConfigs state
     setConfigList(config.animations.map((anim) => ({ ...anim })));
+    setEditingAnimIndex(null);
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
@@ -139,6 +143,7 @@ const deleteSavedConfig = async (name) => {
         fetchSavedConfigs();
         setConfigList([]);
         setConfigName('');
+        setEditingAnimIndex(null);
       } else {
         const text = await response.text();
         console.error("Save failed. Server said:", text);
@@ -164,6 +169,7 @@ const deleteSavedConfig = async (name) => {
         // Adjust these variables depending on exactly how Flask formats the returned dictionary
         setConfigList(data.animations || data.data.animations);
         setConfigName(data.name || data.data.name);
+        setEditingAnimIndex(null);
       })
       .catch(err => {
         console.error("Failed to fetch config:", err);
@@ -193,9 +199,10 @@ const deleteSavedConfig = async (name) => {
         deleteSavedConfig={deleteSavedConfig} 
       />
       
-      <ConfigBuilder 
+      <ConfigBuilder
         configList={configList} setConfigList={setConfigList}
         configName={configName} setConfigName={setConfigName}
+        editingAnimIndex={editingAnimIndex} setEditingAnimIndex={setEditingAnimIndex}
         playConfig={playConfig} saveCurrentConfig={saveCurrentConfig}
         reloadCurrentConfig={fetchConfigFromDatabase}
       />

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { styles } from '../styles';
 import { hexToRgb, rgbToHex } from '../constants';
 
-export default function ConfigBuilder({ 
-  configList, 
-  setConfigList, 
-  configName, 
-  setConfigName, 
-  playConfig, 
+export default function ConfigBuilder({
+  configList,
+  setConfigList,
+  configName,
+  setConfigName,
+  editingAnimIndex,
+  setEditingAnimIndex,
+  playConfig,
   saveCurrentConfig,
   reloadCurrentConfig // --- NEW: Prop to trigger a database fetch from the parent ---
 }) {
@@ -24,7 +26,6 @@ export default function ConfigBuilder({
   const [builderColor, setBuilderColor] = useState('#ff6400'); 
   const [builderColorList, setBuilderColorList] = useState(['#ff6400', '#00ff64', '#6400ff']);
   
-  const [editingAnimIndex, setEditingAnimIndex] = useState(null);
   const [clipboardHasItem, setClipboardHasItem] = useState(!!localStorage.getItem('led_anim_clipboard'));
 
   const checkOverlap = (newAnim, ignoreIndex = null) => {
@@ -144,7 +145,12 @@ export default function ConfigBuilder({
 
   const removeFromConfig = (indexToRemove) => {
     setConfigList(configList.filter((_, index) => index !== indexToRemove));
-    if (editingAnimIndex === indexToRemove) setEditingAnimIndex(null);
+    if (editingAnimIndex === indexToRemove) {
+      setEditingAnimIndex(null);
+    } else if (editingAnimIndex !== null && indexToRemove < editingAnimIndex) {
+      // Items after the removed one shift up; follow the animation being edited
+      setEditingAnimIndex(editingAnimIndex - 1);
+    }
   };
 
   const toggleHide = (index) => {
